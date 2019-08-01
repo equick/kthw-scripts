@@ -38,34 +38,50 @@ gcloud compute firewall-rules list --filter="network:kubenet"
 echo "create vm instances (controllers)"
 #for i in 0 1 2; do
 for i in 0; do
-  gcloud compute instances create controller-${i} \
-    --async \
-    --boot-disk-size 200GB \
-    --can-ip-forward \
-    --image-family ubuntu-1804-lts \
-    --image-project ubuntu-os-cloud \
-    --machine-type n1-standard-1 \
-    --private-network-ip 10.240.0.1${i} \
-    --scopes compute-rw,storage-ro,service-management,service-control,logging-write,monitoring \
-    --subnet kubernetes \
-    --tags kubenet,controller
+    gcloud compute instances create controller-${i} \
+      --async \
+      --boot-disk-size 200GB \
+      --can-ip-forward \
+      --image-family ubuntu-1804-lts \
+      --image-project ubuntu-os-cloud \
+      --machine-type n1-standard-1 \
+      --private-network-ip 10.240.0.1${i} \
+      --scopes compute-rw,storage-ro,service-management,service-control,logging-write,monitoring \
+      --subnet kubernetes \
+      --tags kubenet,controller
+
+    echo "${instance} - internal ip:"
+    gcloud compute instances describe ${instance} \
+      --format 'value(networkInterfaces[0].networkIP)'
+
+    echo "${instance} - external ip:"
+    gcloud compute instances describe ${instance} \
+      --format 'value(networkInterfaces[0].accessConfigs[0].natIP)'
 done
 
 echo "create vm instances (workers)"
 #for i in 0 1 2; do
 for i in 0; do
-  gcloud compute instances create worker-${i} \
-    --async \
-    --boot-disk-size 200GB \
-    --can-ip-forward \
-    --image-family ubuntu-1804-lts \
-    --image-project ubuntu-os-cloud \
-    --machine-type n1-standard-1 \
-    --metadata pod-cidr=10.200.${i}.0/24 \
-    --private-network-ip 10.240.0.2${i} \
-    --scopes compute-rw,storage-ro,service-management,service-control,logging-write,monitoring \
-    --subnet kubernetes \
-    --tags kubenet,worker
+    gcloud compute instances create worker-${i} \
+      --async \
+      --boot-disk-size 200GB \
+      --can-ip-forward \
+      --image-family ubuntu-1804-lts \
+      --image-project ubuntu-os-cloud \
+      --machine-type n1-standard-1 \
+      --metadata pod-cidr=10.200.${i}.0/24 \
+      --private-network-ip 10.240.0.2${i} \
+      --scopes compute-rw,storage-ro,service-management,service-control,logging-write,monitoring \
+      --subnet kubernetes \
+      --tags kubenet,worker
+
+    echo "${instance} - internal ip:"
+    gcloud compute instances describe ${instance} \
+      --format 'value(networkInterfaces[0].networkIP)'
+
+    echo "${instance} - external ip:"
+    gcloud compute instances describe ${instance} \
+      --format 'value(networkInterfaces[0].accessConfigs[0].natIP)'
 done
 
 echo "list instances"
